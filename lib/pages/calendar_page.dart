@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import '../services/lottie_cache_service.dart';
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 class Event {
   final String title;
@@ -36,7 +37,7 @@ class _CalendarPageState extends State<CalendarPage> {
   ];
 
   final _cacheService = LottieCacheService();
-  String? _cachedAnimationPath;
+  Uint8List? _cachedAnimation;
 
   @override
   void initState() {
@@ -45,10 +46,15 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   Future<void> _loadAnimation() async {
-    if (mounted) {
-      setState(() {
-        _cachedAnimationPath = 'assets/animations/calendar_new.json';
-      });
+    try {
+      final animation = await _cacheService.loadAnimation('calendar');
+      if (mounted) {
+        setState(() {
+          _cachedAnimation = animation;
+        });
+      }
+    } catch (e) {
+      print('Error loading calendar animation: $e');
     }
   }
 
@@ -227,10 +233,10 @@ class _CalendarPageState extends State<CalendarPage> {
                           SizedBox(
                             width: 120,
                             height: 120,
-                            child: _cachedAnimationPath == null
+                            child: _cachedAnimation == null
                                 ? const CircularProgressIndicator()
-                                : Lottie.asset(
-                                    _cachedAnimationPath!,
+                                : Lottie.memory(
+                                    _cachedAnimation!,
                                     fit: BoxFit.contain,
                                     frameRate: FrameRate(60),
                                     repeat: true,

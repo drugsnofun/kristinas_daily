@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import '../models/note.dart';
 import '../services/lottie_cache_service.dart';
+import 'dart:typed_data';
+import 'package:intl/intl.dart';
 
 class NotesPage extends StatefulWidget {
   const NotesPage({Key? key}) : super(key: key);
@@ -11,6 +13,10 @@ class NotesPage extends StatefulWidget {
 }
 
 class _NotesPageState extends State<NotesPage> {
+  final _cacheService = LottieCacheService();
+  Uint8List? _cachedAnimation;
+  Uint8List? _butterflySticker;
+  Uint8List? _unicornSticker;
   final List<Note> notes = [];
   
   final List<Color> noteColors = [
@@ -145,15 +151,6 @@ class _NotesPageState extends State<NotesPage> {
     );
   }
 
-  Widget _buildHeaderAnimation() {
-    return Lottie.asset(
-      LottieCacheService.notesAnimation,
-      width: 200,
-      height: 200,
-      fit: BoxFit.contain,
-    );
-  }
-
   Widget _buildStickerPicker() {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -182,97 +179,155 @@ class _NotesPageState extends State<NotesPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _loadAnimation();
+    _loadStickers();
+  }
+
+  Future<void> _loadAnimation() async {
+    try {
+      final animation = await _cacheService.loadAnimation('notes');
+      if (mounted) {
+        setState(() {
+          _cachedAnimation = animation;
+        });
+      }
+    } catch (e) {
+      print('Error loading notes animation: $e');
+    }
+  }
+
+  Future<void> _loadStickers() async {
+    try {
+      final service = LottieCacheService();
+      _butterflySticker = await service.loadSticker('butterfly');
+      _unicornSticker = await service.loadSticker('unicorn');
+      setState(() {});
+    } catch (e) {
+      print('Error loading stickers: $e');
+    }
+  }
+
+  Widget _buildSticker(Uint8List? stickerData) {
+    if (stickerData == null) return const SizedBox();
+    return SizedBox(
+      width: 60,
+      height: 60,
+      child: Lottie.memory(
+        stickerData,
+        repeat: true,
+        reverse: true,
+        fit: BoxFit.contain,
+      ),
+    );
+  }
+
+  Widget _buildNoteCard(Note note, int index) {
+    return Card(
+      elevation: 4,
+      margin: const EdgeInsets.all(8),
+      color: noteColors[index % noteColors.length],
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    note.title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                index % 2 == 0
+                    ? _buildSticker(_butterflySticker)
+                    : _buildSticker(_unicornSticker),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              note.content,
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              DateFormat('dd.MM.yyyy HH:mm').format(note.createdAt),
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.black54,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Column(
-        children: [
-          Expanded(
-            child: notes.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _buildHeaderAnimation(),
-                        const SizedBox(height: 16),
-                        Text(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.pink[100]!,
+              Colors.purple[100]!,
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Container(
+                height: 200,
+                padding: const EdgeInsets.all(16),
+                child: Center(
+                  child: _cachedAnimation == null
+                      ? const CircularProgressIndicator()
+                      : Lottie.memory(
+                          _cachedAnimation!,
+                          fit: BoxFit.contain,
+                          frameRate: FrameRate(60),
+                          repeat: true,
+                        ),
+                ),
+              ),
+              Expanded(
+                child: notes.isEmpty
+                    ? Center(
+                        child: Text(
                           'Нет заметок',
                           style: TextStyle(
                             fontSize: 18,
                             color: Colors.grey[600],
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        ElevatedButton(
-                          onPressed: _addNewNote,
-                          child: const Text('Добавить заметку'),
-                        ),
-                      ],
-                    ),
-                  )
-                : GridView.builder(
-                    padding: const EdgeInsets.all(8),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 8,
-                      crossAxisSpacing: 8,
-                    ),
-                    itemCount: notes.length,
-                    itemBuilder: (context, index) {
-                      final note = notes[index];
-                      return Card(
-                        color: note.color,
-                        child: Stack(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    note.title,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Expanded(
-                                    child: Text(
-                                      note.content,
-                                      overflow: TextOverflow.fade,
-                                      style: const TextStyle(fontSize: 14),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Positioned(
-                              right: 0,
-                              top: 0,
-                              child: SizedBox(
-                                width: 50,
-                                height: 50,
-                                child: Lottie.asset(
-                                  note.stickerPath,
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(8),
+                        itemCount: notes.length,
+                        itemBuilder: (context, index) {
+                          final note = notes[index];
+                          return _buildNoteCard(note, index);
+                        },
+                      ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: _addNewNote,
-            child: const Text('Добавить заметку'),
-          ),
-          const SizedBox(height: 16),
-        ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _addNewNote,
+        child: const Icon(Icons.add),
       ),
     );
   }

@@ -256,85 +256,83 @@ class _PhotoPageState extends State<PhotoPage> {
     print('Building PhotoPage. Total photos: ${photos.length}');
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.9),
-              borderRadius: BorderRadius.circular(15),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              margin: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    for (var frame in frames)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Text(frame, style: const TextStyle(fontSize: 24)),
+                      ),
+                  ],
+                ),
+              ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                for (var frame in frames.take(5))
-                  Text(frame, style: const TextStyle(fontSize: 24)),
-              ],
-            ),
-          ),
-          Expanded(
-            child: photos.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.photo_library_outlined,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Нет фотографий',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey[600],
+            Expanded(
+              child: photos.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.photo_library_outlined,
+                            size: 64,
+                            color: Colors.grey,
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        ElevatedButton(
-                          onPressed: _showPhotoOptions,
-                          child: const Text('Добавить фото'),
-                        ),
-                      ],
-                    ),
-                  )
-                : GridView.builder(
-                    padding: const EdgeInsets.all(8),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 8,
-                      mainAxisSpacing: 8,
-                      childAspectRatio: 1.0,
-                      mainAxisExtent: 200,
-                    ),
-                    itemCount: photos.length,
-                    itemBuilder: (context, index) {
-                      final photo = photos[index];
-                      return GestureDetector(
-                        onTap: () => _showPhotoDetails(photo),
-                        child: Card(
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Нет фотографий',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey[600],
+                            ),
                           ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(
-                                maxWidth: 200,
-                                maxHeight: 200,
-                              ),
+                          const SizedBox(height: 8),
+                          ElevatedButton(
+                            onPressed: _showPhotoOptions,
+                            child: const Text('Добавить фото'),
+                          ),
+                        ],
+                      ),
+                    )
+                  : GridView.builder(
+                      padding: const EdgeInsets.all(8),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 8,
+                        mainAxisSpacing: 8,
+                        childAspectRatio: 0.8,
+                      ),
+                      itemCount: photos.length,
+                      itemBuilder: (context, index) {
+                        final photo = photos[index];
+                        return GestureDetector(
+                          onTap: () => _showPhotoDetails(photo),
+                          child: Card(
+                            elevation: 4,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
                               child: Stack(
                                 fit: StackFit.expand,
                                 children: [
                                   Image.file(
                                     File(photo.path),
                                     fit: BoxFit.cover,
-                                    width: 200,
-                                    height: 200,
-                                    cacheWidth: 400,
-                                    cacheHeight: 400,
                                     errorBuilder: (context, error, stackTrace) {
                                       return const Center(
                                         child: Icon(
@@ -393,12 +391,12 @@ class _PhotoPageState extends State<PhotoPage> {
                               ),
                             ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showPhotoOptions,

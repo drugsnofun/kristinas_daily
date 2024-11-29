@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import '../services/lottie_cache_service.dart';
+import 'dart:typed_data';
 
 class MoodEntry {
   final String mood;
@@ -22,10 +23,31 @@ class MoodPage extends StatefulWidget {
 }
 
 class _MoodPageState extends State<MoodPage> {
+  final _cacheService = LottieCacheService();
+  Uint8List? _cachedAnimation;
   final List<MoodEntry> moodEntries = [];
   final List<String> moods = ['😊', '😐', '😢', '😡', '😴'];
   String _selectedMood = '';
   String _moodNote = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAnimation();
+  }
+
+  Future<void> _loadAnimation() async {
+    try {
+      final animation = await _cacheService.loadAnimation('mood');
+      if (mounted) {
+        setState(() {
+          _cachedAnimation = animation;
+        });
+      }
+    } catch (e) {
+      print('Error loading mood animation: $e');
+    }
+  }
 
   void _showMoodDialog() {
     showDialog(
@@ -83,39 +105,32 @@ class _MoodPageState extends State<MoodPage> {
     );
   }
 
-  void _selectMood(String mood) {
-    setState(() {
-      if (mood == 'Happy') {
-        _selectedMood = '😊';
-      } else if (mood == 'Neutral') {
-        _selectedMood = '😐';
-      }
-    });
-  }
-
-  Widget _buildMoodAnimation() {
-    return Lottie.asset(
-      LottieCacheService.moodAnimation,
-      width: 200,
-      height: 200,
-      fit: BoxFit.contain,
-    );
-  }
-
   Widget _buildMoodOption(String mood) {
+    bool isSelected = _selectedMood == mood;
     String animationPath = mood == 'Happy' 
         ? LottieCacheService.happyMood 
         : LottieCacheService.neutralMood;
-        
+
     return GestureDetector(
-      onTap: () => _selectMood(mood),
+      onTap: () {
+        setState(() {
+          _selectedMood = mood;
+        });
+      },
       child: Container(
         padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isSelected ? Colors.blue : Colors.transparent,
+            width: 2,
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
         child: Lottie.asset(
           animationPath,
           width: 80,
           height: 80,
-          fit: BoxFit.contain,
+          repeat: true,
         ),
       ),
     );
@@ -125,34 +140,89 @@ class _MoodPageState extends State<MoodPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildMoodAnimation(),
-            const SizedBox(height: 16),
-            const Text(
-              'Раздел в разработке',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.blue[100]!,
+              Colors.purple[100]!,
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Container(
+                height: 200,
+                padding: const EdgeInsets.all(16),
+                child: Center(
+                  child: _cachedAnimation == null
+                      ? const CircularProgressIndicator()
+                      : Lottie.memory(
+                          _cachedAnimation!,
+                          fit: BoxFit.contain,
+                          frameRate: FrameRate(60),
+                          repeat: true,
+                        ),
+                ),
               ),
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: _showMoodDialog,
-              child: const Text('Добавить настроение'),
-            ),
-          ],
+              Expanded(
+                child: moodEntries.isEmpty
+                    ? Center(
+                        child: Text(
+                          'Нет записей о настроении',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(8),
+                        itemCount: moodEntries.length,
+                        itemBuilder: (context, index) {
+                          final entry = moodEntries[index];
+                          return Card(
+                            elevation: 4,
+                            margin: const EdgeInsets.symmetric(
+                              vertical: 8,
+                              horizontal: 16,
+                            ),
+                            child: ListTile(
+                              leading: Text(
+                                entry.mood,
+                                style: const TextStyle(fontSize: 24),
+                              ),
+                              title: Text(entry.note),
+                              subtitle: Text(
+                                entry.date.toString().split('.')[0],
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () {
+                                  setState(() {
+                                    moodEntries.removeAt(index);
+                                  });
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showMoodDialog,
-        backgroundColor: Colors.pink[100],
-        child: const Icon(
-          Icons.add,
-          color: Colors.pink,
-        ),
+        child: const Icon(Icons.add),
       ),
     );
   }
