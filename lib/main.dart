@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'pages/home_page.dart';
-import 'pages/notes_page.dart';
 import 'pages/mood_page.dart';
-import 'pages/photo_page.dart';
-import 'pages/calendar_page.dart';
+import 'pages/notes_page.dart';
+import 'pages/antistress_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,45 +16,29 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Kristina\'s Daily',
       theme: ThemeData(
-        primarySwatch: MaterialColor(
-          0xFFFFB5C5, // Пастельный розовый
-          <int, Color>{
-            50: Color(0xFFFFF0F3),
-            100: Color(0xFFFFE4E9),
-            200: Color(0xFFFFD4DC),
-            300: Color(0xFFFFC4CF),
-            400: Color(0xFFFFB5C5),
-            500: Color(0xFFFFA5BB),
-            600: Color(0xFFFF95B1),
-            700: Color(0xFFFF85A7),
-            800: Color(0xFFFF759D),
-            900: Color(0xFFFF6593),
-          },
-        ),
-        scaffoldBackgroundColor: Color(0xFFFFF0F3), // Светлый фон
-        fontFamily: 'Roboto',
+        primarySwatch: Colors.purple,
+        scaffoldBackgroundColor: Colors.transparent,
       ),
-      home: const MyHomePage(),
+      home: const MainPage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+class MainPage extends StatefulWidget {
+  const MainPage({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<MainPage> createState() => _MainPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
 
-  static const List<Widget> _pages = <Widget>[
-    HomePage(),
-    NotesPage(),
-    MoodPage(),
-    PhotoPage(),
-    CalendarPage(),
+  final List<Widget> _pages = [
+    const HomePage(),
+    const MoodPage(),
+    const NotesPage(),
+    const AntistressPage(),
   ];
 
   void _onItemTapped(int index) {
@@ -67,45 +50,75 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Kristina\'s Daily',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFF1A237E).withOpacity(0.8),
+              const Color(0xFF311B92).withOpacity(0.8),
+            ],
           ),
         ),
-        elevation: 0,
+        child: _pages[_selectedIndex],
       ),
-      body: _pages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Главная',
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFF1A237E).withOpacity(0.9),
+              const Color(0xFF311B92).withOpacity(0.9),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.note),
-            label: 'Заметки',
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 8,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_rounded),
+              label: 'Главная',
+              backgroundColor: Colors.transparent,
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.mood_rounded),
+              label: 'Настроение',
+              backgroundColor: Colors.transparent,
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.note_alt_rounded),
+              label: 'Заметки',
+              backgroundColor: Colors.transparent,
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.bubble_chart),
+              label: 'Антистресс',
+              backgroundColor: Colors.transparent,
+            ),
+          ],
+          currentIndex: _selectedIndex,
+          selectedItemColor: Colors.white,
+          unselectedItemColor: Colors.white60,
+          onTap: _onItemTapped,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          type: BottomNavigationBarType.fixed,
+          selectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.mood),
-            label: 'Настроение',
+          unselectedLabelStyle: const TextStyle(
+            fontSize: 12,
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.photo),
-            label: 'Фото',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: 'Календарь',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Theme.of(context).primaryColor,
-        unselectedItemColor: Colors.grey,
-        onTap: _onItemTapped,
+        ),
       ),
     );
   }

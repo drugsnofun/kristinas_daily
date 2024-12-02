@@ -1,266 +1,192 @@
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
-import '../models/note.dart';
-import '../services/lottie_cache_service.dart';
-import 'dart:typed_data';
-import 'package:intl/intl.dart';
 
 class NotesPage extends StatefulWidget {
-  const NotesPage({Key? key}) : super(key: key);
+  const NotesPage({super.key});
 
   @override
-  _NotesPageState createState() => _NotesPageState();
+  State<NotesPage> createState() => _NotesPageState();
 }
 
 class _NotesPageState extends State<NotesPage> {
-  final _cacheService = LottieCacheService();
-  Uint8List? _cachedAnimation;
-  Uint8List? _butterflySticker;
-  Uint8List? _unicornSticker;
-  final List<Note> notes = [];
-  
-  final List<Color> noteColors = [
-    const Color(0xFFFFC9C9), // нежно-розовый
-    const Color(0xFFFFE0B2), // персиковый
-    const Color(0xFFE1BEE7), // лавандовый
-    const Color(0xFFB2EBF2), // голубой
-    const Color(0xFFC8E6C9), // мятный
-    const Color(0xFFF8BBD0), // розовый
+  final List<Map<String, dynamic>> _notes = [];
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _contentController = TextEditingController();
+  String _selectedCategory = 'Личное';
+
+  final List<Map<String, dynamic>> _categories = [
+    {
+      'name': 'Личное',
+      'icon': Icons.person,
+      'color': Color(0xFFB39DDB), // Мягкий фиолетовый
+    },
+    {
+      'name': 'Работа',
+      'icon': Icons.work,
+      'color': Color(0xFF90CAF9), // Мягкий синий
+    },
+    {
+      'name': 'Идеи',
+      'icon': Icons.lightbulb,
+      'color': Color(0xFFFFE082), // Мягкий янтарный
+    },
+    {
+      'name': 'Планы',
+      'icon': Icons.calendar_today,
+      'color': Color(0xFFA5D6A7), // Мягкий зеленый
+    },
   ];
 
-  final Map<String, String> stickers = {
-    'Бабочка': LottieCacheService.butterflySticker,
-    'Единорог': LottieCacheService.unicornSticker,
-  };
-
-  String _selectedSticker = LottieCacheService.butterflySticker;
-
-  void _selectSticker(String stickerPath) {
-    setState(() {
-      _selectedSticker = stickerPath;
-    });
-  }
-
-  void _addNewNote() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        String title = '';
-        String content = '';
-        Color selectedColor = noteColors[0];
-
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text('Новая заметка'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      decoration: const InputDecoration(
-                        labelText: 'Заголовок',
-                        border: OutlineInputBorder(),
-                      ),
-                      onChanged: (value) => title = value,
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      decoration: const InputDecoration(
-                        labelText: 'Содержание',
-                        border: OutlineInputBorder(),
-                      ),
-                      maxLines: 3,
-                      onChanged: (value) => content = value,
-                    ),
-                    const SizedBox(height: 16),
-                    const Text('Выберите стикер:'),
-                    _buildStickerPicker(),
-                    const SizedBox(height: 16),
-                    const Text('Выберите цвет:'),
-                    Container(
-                      height: 50,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: noteColors.length,
-                        itemBuilder: (context, index) {
-                          final color = noteColors[index];
-                          return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                selectedColor = color;
-                              });
-                            },
-                            child: Container(
-                              width: 40,
-                              height: 40,
-                              margin: const EdgeInsets.symmetric(horizontal: 4),
-                              decoration: BoxDecoration(
-                                color: color,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: selectedColor == color
-                                      ? Colors.pink
-                                      : Colors.transparent,
-                                  width: 2,
-                                ),
-                                boxShadow: selectedColor == color
-                                    ? [
-                                        BoxShadow(
-                                          color: Colors.pink.withOpacity(0.3),
-                                          blurRadius: 8,
-                                          spreadRadius: 1,
-                                        ),
-                                      ]
-                                    : null,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Отмена'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    if (title.isNotEmpty && content.isNotEmpty) {
-                      setState(() {
-                        notes.add(Note(
-                          title: title,
-                          content: content,
-                          color: selectedColor,
-                          stickerPath: _selectedSticker,
-                        ));
-                      });
-                      Navigator.pop(context);
-                    }
-                  },
-                  child: const Text('Сохранить'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildStickerPicker() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          _buildStickerOption(LottieCacheService.butterflySticker),
-          _buildStickerOption(LottieCacheService.unicornSticker),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStickerOption(String stickerPath) {
-    return GestureDetector(
-      onTap: () => _selectSticker(stickerPath),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        child: Lottie.asset(
-          stickerPath,
-          width: 60,
-          height: 60,
-          fit: BoxFit.contain,
-        ),
-      ),
-    );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _loadAnimation();
-    _loadStickers();
-  }
-
-  Future<void> _loadAnimation() async {
-    try {
-      final animation = await _cacheService.loadAnimation('notes');
-      if (mounted) {
-        setState(() {
-          _cachedAnimation = animation;
+  void _addNote() {
+    if (_titleController.text.isNotEmpty && _contentController.text.isNotEmpty) {
+      setState(() {
+        _notes.insert(0, {
+          'title': _titleController.text,
+          'content': _contentController.text,
+          'category': _selectedCategory,
+          'timestamp': DateTime.now(),
         });
-      }
-    } catch (e) {
-      print('Error loading notes animation: $e');
+        _titleController.clear();
+        _contentController.clear();
+        Navigator.pop(context);
+      });
     }
   }
 
-  Future<void> _loadStickers() async {
-    try {
-      final service = LottieCacheService();
-      _butterflySticker = await service.loadSticker('butterfly');
-      _unicornSticker = await service.loadSticker('unicorn');
-      setState(() {});
-    } catch (e) {
-      print('Error loading stickers: $e');
-    }
-  }
-
-  Widget _buildSticker(Uint8List? stickerData) {
-    if (stickerData == null) return const SizedBox();
-    return SizedBox(
-      width: 60,
-      height: 60,
-      child: Lottie.memory(
-        stickerData,
-        repeat: true,
-        reverse: true,
-        fit: BoxFit.contain,
-      ),
-    );
-  }
-
-  Widget _buildNoteCard(Note note, int index) {
-    return Card(
-      elevation: 4,
-      margin: const EdgeInsets.all(8),
-      color: noteColors[index % noteColors.length],
-      child: Container(
-        padding: const EdgeInsets.all(16),
+  void _showAddNoteDialog() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          MediaQuery.of(context).viewInsets.bottom + 16,
+        ),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFF1A237E).withOpacity(0.95),
+              const Color(0xFF311B92).withOpacity(0.95),
+            ],
+          ),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    note.title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+            const Text(
+              'Новая заметка',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: TextField(
+                controller: _titleController,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  hintText: 'Заголовок',
+                  hintStyle: TextStyle(color: Colors.white60),
+                  border: InputBorder.none,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: TextField(
+                controller: _contentController,
+                style: const TextStyle(color: Colors.white),
+                maxLines: 5,
+                decoration: const InputDecoration(
+                  hintText: 'Содержание заметки...',
+                  hintStyle: TextStyle(color: Colors.white60),
+                  border: InputBorder.none,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: _categories.map((category) => Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    label: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          category['icon'],
+                          color: _selectedCategory == category['name']
+                              ? Colors.white.withOpacity(0.9)
+                              : category['color'],
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          category['name'],
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.9),
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                    selected: _selectedCategory == category['name'],
+                    onSelected: (selected) {
+                      setState(() {
+                        _selectedCategory = category['name'];
+                      });
+                    },
+                    backgroundColor: const Color(0xFF1A237E).withOpacity(0.4),
+                    selectedColor: const Color(0xFF311B92).withOpacity(0.6),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    labelStyle: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
                     ),
                   ),
+                )).toList(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _addNote,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).primaryColor,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
-                index % 2 == 0
-                    ? _buildSticker(_butterflySticker)
-                    : _buildSticker(_unicornSticker),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              note.content,
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              DateFormat('dd.MM.yyyy HH:mm').format(note.createdAt),
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.black54,
+                child: const Text(
+                  'Сохранить',
+                  style: TextStyle(fontSize: 16),
+                ),
               ),
             ),
           ],
@@ -270,54 +196,176 @@ class _NotesPageState extends State<NotesPage> {
   }
 
   @override
+  void dispose() {
+    _titleController.dispose();
+    _contentController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.pink[100]!,
-              Colors.purple[100]!,
-            ],
-          ),
-        ),
-        child: SafeArea(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                height: 200,
-                padding: const EdgeInsets.all(16),
-                child: Center(
-                  child: _cachedAnimation == null
-                      ? const CircularProgressIndicator()
-                      : Lottie.memory(
-                          _cachedAnimation!,
-                          fit: BoxFit.contain,
-                          frameRate: FrameRate(60),
-                          repeat: true,
-                        ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Мои заметки',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: _showAddNoteDialog,
+                    icon: const Icon(
+                      Icons.add_circle,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: _categories.map((category) => Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: FilterChip(
+                      label: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            category['icon'],
+                            color: category['color'],
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            category['name'],
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                      selected: false,
+                      onSelected: (selected) {},
+                      backgroundColor: const Color(0xFF1A237E).withOpacity(0.4),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      labelStyle: TextStyle(
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                    ),
+                  )).toList(),
                 ),
               ),
+              const SizedBox(height: 16),
               Expanded(
-                child: notes.isEmpty
+                child: _notes.isEmpty
                     ? Center(
-                        child: Text(
-                          'Нет заметок',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey[600],
-                          ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.note_alt_outlined,
+                              size: 64,
+                              color: Colors.white.withOpacity(0.5),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Нет заметок',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.white.withOpacity(0.5),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Нажмите + чтобы добавить заметку',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white.withOpacity(0.5),
+                              ),
+                            ),
+                          ],
                         ),
                       )
                     : ListView.builder(
-                        padding: const EdgeInsets.all(8),
-                        itemCount: notes.length,
+                        itemCount: _notes.length,
                         itemBuilder: (context, index) {
-                          final note = notes[index];
-                          return _buildNoteCard(note, index);
+                          final note = _notes[index];
+                          final category = _categories.firstWhere(
+                            (c) => c['name'] == note['category'],
+                          );
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  const Color(0xFF1A237E).withOpacity(0.4),
+                                  const Color(0xFF311B92).withOpacity(0.4),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.all(16),
+                              leading: CircleAvatar(
+                                backgroundColor: category['color'].withOpacity(0.2),
+                                child: Icon(
+                                  category['icon'],
+                                  color: category['color'],
+                                ),
+                              ),
+                              title: Text(
+                                note['title'],
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    note['content'],
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.7),
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    _formatDate(note['timestamp']),
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.5),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
                         },
                       ),
               ),
@@ -325,10 +373,10 @@ class _NotesPageState extends State<NotesPage> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addNewNote,
-        child: const Icon(Icons.add),
-      ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}.${date.month}.${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
   }
 }

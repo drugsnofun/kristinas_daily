@@ -517,7 +517,6 @@ class LottieCacheService {
 }
 ''';
 
-  // Стикеры для заметок
   static const String butterflySticker = '''
 {
   "v": "5.5.7",
@@ -709,6 +708,194 @@ class LottieCacheService {
   ]
 }''';
 
+  static const String happySticker = '''
+{
+  "v": "5.5.7",
+  "fr": 60,
+  "ip": 0,
+  "op": 180,
+  "w": 512,
+  "h": 512,
+  "nm": "Happy Face",
+  "ddd": 0,
+  "assets": [],
+  "layers": [
+    {
+      "ddd": 0,
+      "ind": 1,
+      "ty": 4,
+      "nm": "Face",
+      "sr": 1,
+      "ks": {
+        "o": {"a": 0, "k": 100},
+        "r": {"a": 0, "k": 0},
+        "p": {"a": 0, "k": [256, 256, 0]},
+        "a": {"a": 0, "k": [0, 0, 0]},
+        "s": {
+          "a": 1,
+          "k": [
+            {"t": 0, "s": [100, 100]},
+            {"t": 90, "s": [110, 110]},
+            {"t": 180, "s": [100, 100]}
+          ]
+        }
+      },
+      "shapes": [
+        {
+          "ty": "gr",
+          "it": [
+            {
+              "ty": "el",
+              "p": {"a": 0, "k": [0, 0]},
+              "s": {"a": 0, "k": [200, 200]},
+              "nm": "Face Circle"
+            },
+            {
+              "ty": "st",
+              "c": {"a": 0, "k": [1, 0.8, 0.2, 1]},
+              "o": {"a": 0, "k": 100},
+              "w": {"a": 0, "k": 8},
+              "lc": 2,
+              "lj": 2
+            },
+            {
+              "ty": "fl",
+              "c": {"a": 0, "k": [1, 0.9, 0.4, 1]},
+              "o": {"a": 0, "k": 100}
+            }
+          ]
+        },
+        {
+          "ty": "gr",
+          "it": [
+            {
+              "ty": "sh",
+              "ks": {
+                "a": 1,
+                "k": [
+                  {
+                    "t": 0,
+                    "s": [{"c": true, "v": [[-50,-20], [0,20], [50,-20]]}]
+                  },
+                  {
+                    "t": 90,
+                    "s": [{"c": true, "v": [[-50,-10], [0,30], [50,-10]]}]
+                  },
+                  {
+                    "t": 180,
+                    "s": [{"c": true, "v": [[-50,-20], [0,20], [50,-20]]}]
+                  }
+                ]
+              }
+            },
+            {
+              "ty": "st",
+              "c": {"a": 0, "k": [1, 0.6, 0.2, 1]},
+              "o": {"a": 0, "k": 100},
+              "w": {"a": 0, "k": 8}
+            }
+          ],
+          "nm": "Smile"
+        }
+      ]
+    }
+  ]
+}''';
+
+  static const String sadSticker = '''
+{
+  "v": "5.5.7",
+  "fr": 60,
+  "ip": 0,
+  "op": 180,
+  "w": 512,
+  "h": 512,
+  "nm": "Sad Face",
+  "ddd": 0,
+  "assets": [],
+  "layers": [
+    {
+      "ddd": 0,
+      "ind": 1,
+      "ty": 4,
+      "nm": "Face",
+      "sr": 1,
+      "ks": {
+        "o": {"a": 0, "k": 100},
+        "r": {"a": 0, "k": 0},
+        "p": {"a": 0, "k": [256, 256, 0]},
+        "a": {"a": 0, "k": [0, 0, 0]},
+        "s": {
+          "a": 1,
+          "k": [
+            {"t": 0, "s": [100, 100]},
+            {"t": 90, "s": [95, 95]},
+            {"t": 180, "s": [100, 100]}
+          ]
+        }
+      },
+      "shapes": [
+        {
+          "ty": "gr",
+          "it": [
+            {
+              "ty": "el",
+              "p": {"a": 0, "k": [0, 0]},
+              "s": {"a": 0, "k": [200, 200]},
+              "nm": "Face Circle"
+            },
+            {
+              "ty": "st",
+              "c": {"a": 0, "k": [0.6, 0.6, 0.8, 1]},
+              "o": {"a": 0, "k": 100},
+              "w": {"a": 0, "k": 8},
+              "lc": 2,
+              "lj": 2
+            },
+            {
+              "ty": "fl",
+              "c": {"a": 0, "k": [0.7, 0.7, 0.9, 1]},
+              "o": {"a": 0, "k": 100}
+            }
+          ]
+        },
+        {
+          "ty": "gr",
+          "it": [
+            {
+              "ty": "sh",
+              "ks": {
+                "a": 1,
+                "k": [
+                  {
+                    "t": 0,
+                    "s": [{"c": true, "v": [[-50,20], [0,-20], [50,20]]}]
+                  },
+                  {
+                    "t": 90,
+                    "s": [{"c": true, "v": [[-50,30], [0,-10], [50,30]]}]
+                  },
+                  {
+                    "t": 180,
+                    "s": [{"c": true, "v": [[-50,20], [0,-20], [50,20]]}]
+                  }
+                ]
+              }
+            },
+            {
+              "ty": "st",
+              "c": {"a": 0, "k": [0.4, 0.4, 0.6, 1]},
+              "o": {"a": 0, "k": 100},
+              "w": {"a": 0, "k": 8}
+            }
+          ],
+          "nm": "Frown"
+        }
+      ]
+    }
+  ]
+}''';
+
   Future<Uint8List> loadSticker(String name) async {
     String jsonString;
     switch (name.toLowerCase()) {
@@ -720,6 +907,21 @@ class LottieCacheService {
         break;
       default:
         throw Exception('Sticker not found: $name');
+    }
+    return Uint8List.fromList(utf8.encode(jsonString));
+  }
+
+  Future<Uint8List> loadMoodSticker(String mood) async {
+    String jsonString;
+    switch (mood.toLowerCase()) {
+      case 'happy':
+        jsonString = happySticker;
+        break;
+      case 'sad':
+        jsonString = sadSticker;
+        break;
+      default:
+        throw Exception('Mood sticker not found: $mood');
     }
     return Uint8List.fromList(utf8.encode(jsonString));
   }
